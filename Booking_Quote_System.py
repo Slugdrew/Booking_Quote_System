@@ -6,27 +6,39 @@
 # Change Log: (Who, When, What)
 # AHernandez, 2021-June-08, Created File for Booking Quote application and skeletal structure 
 # AHernandez, 2021-June-10, Created menu structure and IO class 
-# AHernandez, 2021-June-1, Added Exception handling to new order
+# AHernandez, 2021-June-11, Added Exception handling to new order
+# AHernandez, 2021-June-12, Worked on logic for adding new package, built Order class
 # ------------------------------------------#
 import time
-from datetime import datetime 
+from datetime import datetime, timedelta 
 strChoice = '' 
 lstTbl = []
 dictRow = {}
 menuOptions = '\nWelcome to the Booking System.  Please choose from one of the following:\n\t[P] Show Current Rates\n\t[N] Create a New Order\n\t[X] Quit'
 strMenuOption = 'n','p','x'
- 
 
-# -- INPUT/OUTPUT -- #
+# -- DataProcessor -- # 
+class DataProcessor:
+    def process_new_order(intOrderId, deliveryStatus, strName, strDescription,hazardousFlag,fltWeight, fltVolume, dtDelivery):
+        new_order = Order(intOrderId, deliveryStatus, strName, strDescription,hazardousFlag,fltWeight, fltVolume, dtDelivery)
+        lstTbl = new_order.customerName,new_order.status , new_order.packageDescription, new_order.hazardousFlag, new_order.weight, new_order.volume, new_order.deliveryDate
+        dictRow[new_order.orderId] = list(lstTbl)
+        print(dictRow)
+        return dictRow
+    
+    def process_shipping_options(dictRow, intOrderId):
+        pass
+ 
 class Order:
-    def __init__(self, orderId, customerName, packageDescription, hazardousFlag, weight, volume, deliveryDate):
-        self.__orderId = orderId
-        self.__customerName = customerName
-        self.__packageDescription = packageDescription
-        self.__hazardousFlag = hazardousFlag
-        self.__weight = weight
-        self.__volume = volume
-        self.__deliveryDate = deliveryDate
+    def __init__(self, orderId, status, customerName, packageDescription, hazardousFlag, weight, volume, deliveryDate):
+        self.orderId = orderId
+        self.status = status
+        self.customerName = customerName
+        self.packageDescription = packageDescription
+        self.hazardousFlag = hazardousFlag
+        self.weight = weight
+        self.volume = volume
+        self.deliveryDate = deliveryDate
 
     
 class IO:
@@ -43,6 +55,23 @@ class IO:
     def add_new_order(orderId):
          
         orderId = len(dictRow) + 1
+        while True:
+            try:
+                urgent = input("Do you need urgent delivery (Dilivered in less than 3 Business days): ").strip().lower()
+                if urgent.isalpha():
+                    if urgent in ("yes", "no"):
+                        if urgent == 'yes':
+                            deliveryStatus = True
+                        else:
+                            deliveryStatus = False
+                        break
+                    else:
+                        print("You must enter Yes or No")
+                else:
+                    raise
+            except:
+                print("Please enter only Alpha characters")
+                
         customerName = input("Please enter the customers Name: ")
         packageDescription = input("Please enter the package description: ")
         hazFlag = False
@@ -96,19 +125,22 @@ class IO:
                 print("Volume of package must be less than 125m³")
                 
         while True:
-            deliveryDate = input('Enter a delivery date(YYYY-MM-DD): ').strip()
-            if datetime.strptime(deliveryDate, '%Y-%m-%d') >= datetime.now():
-                try:
-                    datetime.strptime(deliveryDate, '%Y-%m-%d')
-                    break
-                except ValueError:
-                    print("Incorrect Start Date format, It should be YYYY-MM-DD") 
+            if deliveryStatus:
+                deliveryDate = (datetime.now() + timedelta(days = 3)).strftime('%Y-%m-%d')
+                break
             else:
-                print("Delivery Date cannot be in the past")
-        lstTbl = customerName, packageDescription, hazFlag, weight, volume, deliveryDate
-        dictRow[orderId] = list(lstTbl)
-        print (dictRow)
-        return orderId, customerName, packageDescription, hazFlag, weight, volume, deliveryDate       
+                deliveryDate = input('Enter a delivery date(YYYY-MM-DD): ').strip()
+                if datetime.strptime(deliveryDate, '%Y-%m-%d') >= datetime.now():
+                    try:
+                        datetime.strptime(deliveryDate, '%Y-%m-%d')
+                        break
+                    except ValueError:
+                        print("Incorrect Start Date format, It should be YYYY-MM-DD") 
+                else:
+                    print("Delivery Date cannot be in the past")
+        
+                
+        return orderId, deliveryStatus, customerName, packageDescription, hazFlag, weight, volume, deliveryDate       
 
                 
 class Main:    
@@ -124,8 +156,9 @@ class Main:
                 elif strChoice == 'p':
                     pass
                 elif strChoice == 'n':
-                    intOrderId, strName, strDescription,hazardousFlag,fltWeight, fltVolume, dtDelivery = IO.add_new_order(intOrderId)
-                
+                    intOrderId, deliveryStatus, strName, strDescription,hazardousFlag,fltWeight, fltVolume, dtDelivery = IO.add_new_order(intOrderId)
+                    dictRow = DataProcessor.process_new_order(intOrderId, deliveryStatus, strName, strDescription,hazardousFlag,fltWeight, fltVolume, dtDelivery)
+                    DataProcessor.process_shipping_options(dictRow, intOrderId)
         except KeyboardInterrupt:
             print('\nThe user has caused a keyboard interruption\nThe program will now close!')
             time.sleep(2)
