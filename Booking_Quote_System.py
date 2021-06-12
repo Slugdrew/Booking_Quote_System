@@ -5,7 +5,8 @@
 # Desc: Assignment Booking Quote System - Create the Booking Quote application
 # Change Log: (Who, When, What)
 # AHernandez, 2021-June-08, Created File for Booking Quote application and skeletal structure 
-# AHernandez, 2021-June-11, Created menu structure and IO class 
+# AHernandez, 2021-June-10, Created menu structure and IO class 
+# AHernandez, 2021-June-1, Added Exception handling to new order
 # ------------------------------------------#
 import time
 from datetime import datetime 
@@ -48,6 +49,13 @@ class IO:
         hazardousFlag = input("Does the package contain any hazardous material? ").strip().lower()
         if hazardousFlag == 'yes':
             hazFlag = True
+            cont = input("Warining hazardous material is not permitted for Air Delivery! Would you like to continue: ").strip().lower()
+            if cont == 'yes':
+                hazFlag = True
+            else:
+                hazFlag = False
+                print("hazardous material has been removed from the package!")
+                
         else:
             hazFlag
         while True:
@@ -59,36 +67,44 @@ class IO:
                     print("packages must be under 10Kg")
             except ValueError:
                 print("Weight must be a float value")
+        while True:       
+            while True:
+                try:    
+                    height = float(input("Enter package height (in meters): "))
+                    break
+                except ValueError:
+                    print("height must be a float value")
+                    
+            while True:
+                try:            
+                    length = float(input("Enter package length (in meters): "))
+                    break
+                except ValueError:
+                    print("height must be a float value")
+                    
+            while True:
+                try:                 
+                    width = float(input("Enter package width (in meters): "))
+                    break
+                except ValueError:
+                    print("width must be a float value")
+                    
+            volume = height * length * width
+            if volume <= 125.0:
+                break
+            else:
+                print("Volume of package must be less than 125m³")
                 
         while True:
-            try:    
-                height = float(input("Enter package height (in meters): "))
-                break
-            except ValueError:
-                print("height must be a float value")
-                
-        while True:
-            try:            
-                length = float(input("Enter package length (in meters): "))
-                break
-            except ValueError:
-                print("height must be a float value")
-                
-        while True:
-            try:                 
-                width = float(input("Enter package width (in meters): "))
-                break
-            except ValueError:
-                print("width must be a float value")
-                
-        volume = height * length * width
-        while True:
-            deliveryDate = input('Enter a delivery date(YYYY-MM-DD): ').strip() 
-            try:
-                datetime.strptime(deliveryDate, '%Y-%m-%d')
-                break
-            except ValueError:
-                print("Incorrect Start Date format, It should be YYYY-MM-DD") 
+            deliveryDate = input('Enter a delivery date(YYYY-MM-DD): ').strip()
+            if datetime.strptime(deliveryDate, '%Y-%m-%d') >= datetime.now():
+                try:
+                    datetime.strptime(deliveryDate, '%Y-%m-%d')
+                    break
+                except ValueError:
+                    print("Incorrect Start Date format, It should be YYYY-MM-DD") 
+            else:
+                print("Delivery Date cannot be in the past")
         lstTbl = customerName, packageDescription, hazFlag, weight, volume, deliveryDate
         dictRow[orderId] = list(lstTbl)
         print (dictRow)
