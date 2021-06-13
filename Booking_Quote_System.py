@@ -21,7 +21,7 @@ strChoice = ''
 lstTbl = []
  
 
-menuOptions = '\nWelcome to the Booking System.  Please choose from one of the following:\n\t[P] Show Current Rates\n\t[N] Create a New Order\n\t[S] Show Order History\n\t[X] Quit'
+menuOptions = '\nWelcome to the Booking System.  Please choose from one of the following:\n\t[N] Create a New Order\n\t[S] Show Order History\n\t[X] Quit'
 strMenuOption = 'n','p','x','s'
 orderHistoryFile = 'OrderHistory.csv'
 quoteFile = 'OrderQuotes.csv'
@@ -43,8 +43,10 @@ class DataProcessor:
         deliveryCosts.airCost
         deliveryCosts.truckCost
         deliveryCosts.oceanCost
+        
         if weightCost > volumeCost:
             deliveryCosts.airCost = weightCost
+            
         else:
             deliveryCosts.airCost = volumeCost
             
@@ -56,8 +58,10 @@ class DataProcessor:
             
         if urgent == True:
             deliveryCosts.truckCost = 45
+            
         else:
             deliveryCosts.truckCost = 25
+            
         deliveryCosts.oceanCost = 30    
         dictRow[intOrderId].extend([deliveryCosts.airCost, deliveryCosts.truckCost, deliveryCosts.oceanCost])
         return dictRow
@@ -84,7 +88,8 @@ class DataProcessor:
         for key, val in dictRow.items():
             if key == intOrderId:
                 table.add_row([key, *val])
-        return table    
+        return table  
+    
 # -- Order -- #  
 class Order:
     def __init__(self, orderId, status, customerName, packageDescription, hazardousFlag, weight, volume, deliveryDate):
@@ -108,18 +113,18 @@ class DeliveryCost:
 # -- FILE PROCESSING -- #         
 class FileProcessor:
     def read_file(file_name, dictRow,lstTbl):
-            dictRow.clear()
-            try:
-                with open(file_name, mode='r') as file:
-                    next(file)
-                    for line in csv.reader(file):
-                        tup = line[1],line[2],line[3],line[4],line[5],line[6],line[7],line[8],line[9],line[10]
-                        lstTbl = list(tup)
-                        dictRow[line[0]] = lstTbl
-                print(f'Loading {file_name}: \n')
-            except (FileNotFoundError,OSError):
-                print(f'There is no file named {file_name}.')
-            return dictRow
+        dictRow.clear()
+        try:
+            with open(file_name, mode='r') as file:
+                next(file)
+                for line in csv.reader(file):
+                    tup = line[1],line[2],line[3],line[4],line[5],line[6],line[7],line[8],line[9],line[10]
+                    lstTbl = list(tup)
+                    dictRow[line[0]] = lstTbl
+            print(f'Loading {file_name}: \n')
+        except (FileNotFoundError,OSError):
+            print(f'There is no file named {file_name}.')
+        return dictRow
 
     def write_file(file_name, dictRow):         
         try:
@@ -179,18 +184,29 @@ class IO:
         customerName = input("Please enter the customers Name: ")
         packageDescription = input("Please enter the package description: ")
         hazFlag = False
-        hazardousFlag = input("Does the package contain any hazardous material? ").strip().lower()
-        if hazardousFlag == 'yes':
-            hazFlag = True
-            cont = input("Warining hazardous material is not permitted for Air Delivery! Would you like to continue: ").strip().lower()
-            if cont == 'yes':
-                hazFlag = True
-            else:
-                hazFlag = False
-                print("hazardous material has been removed from the package!")
-                
-        else:
-            hazFlag
+        while True:
+            try:
+                hazardousFlag = input("Does the package contain any hazardous material? ").strip().lower()
+                if hazardousFlag.isalpha():
+                    if hazardousFlag in ("yes", "no"):
+                        if hazardousFlag == 'yes':
+                            hazFlag = True
+                            cont = input("Warining hazardous material is not permitted for Air Delivery! Would you like to continue: ").strip().lower()
+                            if cont == 'yes':
+                                hazFlag = True
+                            else:
+                                hazFlag = False
+                                print("hazardous material has been removed from the package!")
+                                
+                        else:
+                            hazFlag
+                        break
+                    else:
+                        print("You must enter Yes or No") 
+                else:
+                    raise
+            except:
+                print("Please enter only Alpha characters")
         while True:
             try:
                 weight = float(input("Enter weight of package: "))
@@ -229,11 +245,13 @@ class IO:
                 print("Volume of package must be less than 125m³")
                 
         while True:
+            
             if deliveryStatus:
                 deliveryDate = (datetime.now() + timedelta(days = 3)).strftime('%Y-%m-%d')
                 break
             else:
                 deliveryDate = input('Enter a delivery date(YYYY-MM-DD): ').strip()
+                
                 if datetime.strptime(deliveryDate, '%Y-%m-%d') >= datetime.now():
                     try:
                         datetime.strptime(deliveryDate, '%Y-%m-%d')
@@ -247,7 +265,7 @@ class IO:
         return orderId, deliveryStatus, customerName, packageDescription, hazFlag, weight, volume, deliveryDate 
    
     def export_to_text():
-        tblExport = input('Would you like to print this table? (Yes/No) ').strip().lower()
+        tblExport = input('Would you like to print the invoice? (Yes/No) ').strip().lower()
         return tblExport     
 # -- PRESENTATION -- #
 
@@ -269,16 +287,18 @@ class Main:
         dictRow = {}
         try:
             while True:
+                
                 if file.exists():
                     dictRow = FileProcessor.read_file(orderHistoryFile, dictRow, lstTbl)
                 else:
                     Presentation.file_state(orderHistoryFile)
+                    
                 print(menuOptions)
                 strChoice = IO.choice(strMenuOption)
+                
                 if strChoice == 'x':
                     break
-                elif strChoice == 'p':
-                    pass
+
                 elif strChoice == 'n':
                     intOrderId, deliveryStatus, strName, strDescription,hazardousFlag,fltWeight, fltVolume, dtDelivery = IO.add_new_order(intOrderId)
                     dictRow = DataProcessor.process_new_order(intOrderId, deliveryStatus, strName, strDescription,hazardousFlag,fltWeight, fltVolume, dtDelivery)
@@ -286,7 +306,9 @@ class Main:
                     DataProcessor.order_cost(dictRow, intOrderId, hazardous, urgent) 
                     ptable = DataProcessor.find_current_order(dictRow, intOrderId)
                     FileProcessor.write_file(orderHistoryFile, dictRow)
+                    print("\n Here are your Order details:")
                     Presentation.show_order_history(ptable)
+                    
                     if ptable != None:
                         tblExport = IO.export_to_text()
                         FileProcessor.export_current_order(tblExport,ptable, dictRow, intOrderId)
@@ -294,6 +316,7 @@ class Main:
                 elif strChoice == 's':
                     ptable = DataProcessor.order_history(dictRow)
                     Presentation.show_order_history(ptable)
+                    
                     if ptable != None:
                         tblExport = IO.export_to_text()
                         FileProcessor.export_order_history(tblExport,ptable)
