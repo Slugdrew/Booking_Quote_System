@@ -9,6 +9,7 @@
 # AHernandez, 2021-June-11, Added Exception handling to new order
 # AHernandez, 2021-June-12, Worked on logic for adding new package, built Order class
 # AHernandez, 2021-June-12, Worked on print functionality, Cost logic and Cost class
+# AHernandez, 2021-June-12, Added Data and refactored some code'
 # ------------------------------------------#
 import time
 from datetime import datetime, timedelta 
@@ -19,7 +20,7 @@ from prettytable import PrettyTable
 
 strChoice = '' 
 lstTbl = []
- 
+dictRow = {}
 
 menuOptions = '\nWelcome to the Booking System.  Please choose from one of the following:\n\t[N] Create a New Order\n\t[S] Show Order History\n\t[X] Quit'
 strMenuOption = 'n','p','x','s'
@@ -63,7 +64,7 @@ class DataProcessor:
             deliveryCosts.truckCost = 25
             
         deliveryCosts.oceanCost = 30    
-        dictRow[intOrderId].extend([deliveryCosts.airCost, deliveryCosts.truckCost, deliveryCosts.oceanCost])
+        dictRow[OrderId].extend([deliveryCosts.airCost, deliveryCosts.truckCost, deliveryCosts.oceanCost])
         return dictRow
     
     def order_history(dictRow):
@@ -251,15 +252,15 @@ class IO:
                 break
             else:
                 deliveryDate = input('Enter a delivery date(YYYY-MM-DD): ').strip()
-                
-                if datetime.strptime(deliveryDate, '%Y-%m-%d') >= datetime.now():
-                    try:
-                        datetime.strptime(deliveryDate, '%Y-%m-%d')
+                try:
+                    if datetime.strptime(deliveryDate, '%Y-%m-%d') >= datetime.now():
+                        #datetime.strptime(deliveryDate, '%Y-%m-%d')
                         break
-                    except ValueError:
-                        print("Incorrect Start Date format, It should be YYYY-MM-DD") 
-                else:
-                    print("Delivery Date cannot be in the past")
+                    else:
+                        print("Delivery Date cannot be in the past")
+                except ValueError:
+                    print("Incorrect Start Date format, It should be YYYY-MM-DD") 
+
         
                 
         return orderId, deliveryStatus, customerName, packageDescription, hazFlag, weight, volume, deliveryDate 
@@ -284,7 +285,7 @@ class Main:
         intOrderId = 1
         file =  pathlib.Path(orderHistoryFile)
         global dictRow  
-        dictRow = {}
+        dictRow = {} 
         try:
             while True:
                 
