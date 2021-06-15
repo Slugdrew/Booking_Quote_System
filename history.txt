@@ -1,0 +1,7 @@
+1d44281 Added Data and refactored some code
+f468205 Worked on cost logic, printing, saving to txt and csv
+59e3d72 Worked on logic for adding new order, built order class
+8ae7417 Added exception handeling to New order
+2735e27 Created menu and IO, Order class
+6228eb0 Initial Commit
+1b4fad4 Initial commit
